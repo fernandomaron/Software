@@ -23,7 +23,7 @@ def process_callback(msg):
     msj.header.stamp = rospy.get_rostime() 
     if not(x==320):
         if x<320:    
-            msj.omega = 10*(x-320)/320
+            msj.omega = -10*(x-320)/320
         elif x>320:
             msj.omega = -10*(x-320)/320
         
