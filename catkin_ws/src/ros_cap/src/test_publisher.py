@@ -14,8 +14,8 @@ def main():
     msg = Twist2DStamped()
     while not rospy.is_shutdown():
         msg.header.stamp = rospy.get_rostime()     
-        msg.omega = 0.5
-        msg.v = 0.5
+        msg.omega = 0.0
+        msg.v = 0.0
         base_pub.publish(msg)
         rate.sleep()
 
