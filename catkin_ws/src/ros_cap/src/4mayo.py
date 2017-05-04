@@ -4,6 +4,9 @@ import rospy
 import numpy as np
 import cv2
 
+from geometry_msgs.msg import Point
+from std_srvs.srv import Empty, EmptyResponse
+
 from sensor_msgs.msg import Image
 
 from cv_bridge import CvBridge, CvBridgeError
@@ -29,7 +32,11 @@ class SegmentImage():
 
         #Ultima imagen adquirida
         self.cv_image = Image()
-        self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_info', Image, queue_size=1)
+        self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
+        self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
+        
+
+        self.min_area=200
 
 
     def process_image(self,img):
@@ -50,10 +57,38 @@ class SegmentImage():
         mask = cv2.inRange(image_out, lower_yellow, upper_yellow)
 
         # Bitwise-AND mask and original image
-        segment_image = cv2.bitwise_and(frame,frame, mask= mask)
+        #segment_image = cv2.bitwise_and(frame,frame, mask= mask)
 
+        kernel = np.ones((5,5),np.uint8)
+
+        #Operacion morfologica erode
+        mask1 = cv2.erode(mask, kernel, iterations = 2)
+        
+        #Operacion morfologica dilate
+        mask2 = cv2.dilate(mask1, kernel, iterations = 2)
+
+        image, contours, hierarchy = cv2.findContours(mask2,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        xx=0
+        ww=0
+        for cnt in contours:
+                  #Obtener rectangulo
+                  x,y,w,h = cv2.boundingRect(cnt)
+                  xx=x
+                  ww=w
+                  #Filtrar por area minima
+                  if w*h > self.min_area:
+
+                            #Dibujar un rectangulo en la imagen
+                            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
+
+        #Publicar frame
+
+        #Publicar Point center de mayor tamanio
+        centrox=xx+ww/2
+        #msg2=float64x
+        self.pub2.publish(centrox,0,0)
         #Publicar imagenes
-        msg1= self.bridge.cv2_to_imgmsg(segment_image, "bgr8")
+        msg1= self.bridge.cv2_to_imgmsg(frame, "bgr8")
         self.pub.publish(msg1)
 
 
