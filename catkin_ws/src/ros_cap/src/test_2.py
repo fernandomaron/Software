@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#Controla duckiebot con joystick
 import rospy
 from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
 from sensor_msgs.msg import Joy

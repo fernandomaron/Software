@@ -11,6 +11,8 @@ from sensor_msgs.msg import Image
 
 from cv_bridge import CvBridge, CvBridgeError
 
+from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
+
 lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
@@ -34,6 +36,7 @@ class SegmentImage():
         self.cv_image = Image()
         self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
         self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
+        self.pubgiro= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
         
 
         self.min_area=200
@@ -82,14 +85,23 @@ class SegmentImage():
                             cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
 
         #Publicar frame
-
+        msg_imagen=self.bridge.cv2_to_imgmsg(frame, "bgr8")
+        self.pub.publish(msg_imagen)
         #Publicar Point center de mayor tamanio
         centrox=xx+ww/2
-        #msg2=float64x
-        self.pub2.publish(centrox,0,0)
-        #Publicar imagenes
-        msg1= self.bridge.cv2_to_imgmsg(frame, "bgr8")
-        self.pub.publish(msg1)
+        centroxcamara= msg_image.width/2
+        deltac=centrox-centroxcamara #distancia entre centros, el objeto está a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
+        msg1 = Twist2DStamped()
+        msg1.header.stamp = rospy.get_rostime()
+        if abs(deltac)<=40:
+                msg1.omega=0
+        else:
+                if deltac<0:
+                        msg1.omega=-0.9
+                if deltac>0:
+                        msg1.omega=0.9
+
+        self.pubgiro.publish(msg1)
 
 
 def main():
