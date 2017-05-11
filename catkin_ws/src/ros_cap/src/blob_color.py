@@ -30,6 +30,7 @@ class BlobColor():
         #Subscribirce al topico "/duckiebot/camera_node/image/raw"
         self.image_subscriber = rospy.Subscriber('duckiebot/camera_node/image/rect', Image, self.process_image)
 
+ 
         #Clase necesaria para transformar el tipo de imagen
         self.bridge = CvBridge()
 
@@ -40,8 +41,9 @@ class BlobColor():
         self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
         self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
         self.pubgiro= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
+
         self.pubpunto=rospy.Publisher('/duckiebot/geometry_msgs/posicionciudadano', Point, queue_size=1)
-        
+       
 
         self.min_area=200
 
@@ -124,7 +126,6 @@ class BlobColor():
         else:
                 msg1.omega= -0.03*deltac
                
-
         self.pubgiro.publish(msg1)
 
 def main():
