@@ -40,6 +40,7 @@ class BlobColor():
         self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
         self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
         self.pubgiro= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
+        self.pubpunto=rospy.Publisher('/duckiebot/geometry_msgs/posicionciudadano', Point, queue_size=1)
         
 
         self.min_area=200
@@ -82,6 +83,8 @@ class BlobColor():
                   x,y,w,h = cv2.boundingRect(cnt)
                   xx=x
                   ww=w
+                  yy=y
+                  hh=h
                   #Filtrar por area minima
                   if w*h > self.min_area:
 
@@ -93,17 +96,23 @@ class BlobColor():
         self.pub.publish(msg_imagen)
         #Publicar Point center de mayor tamanio
         centrox=xx+ww/2
+        centroy=yy+hh/2
+        msgpunto=Point()
+        msgpunto.x=centrox
+        msgpunto.y=centroy
+        self.pubpunto.publish(msgpunto)
+
         centroxcamara= msg_image.width/2
         deltac=centrox-centroxcamara #distancia entre centros, el objeto está a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
         msg1 = Twist2DStamped()
         msg1.header.stamp = rospy.get_rostime()
-        if abs(deltac)<=40:
+        
+        if abs(deltac)<=50:
+                msg1.omega=0
+        elif centrox==0:
                 msg1.omega=0
         else:
-                if deltac<0:
-                        msg1.omega=-0.9
-                if deltac>0:
-                        msg1.omega=0.9
+                msg1.omega= -0.03*deltac
 
         self.pubgiro.publish(msg1)
 
