@@ -42,7 +42,7 @@ class BlobColor():
         self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
         self.pubgiro= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
 
-        self.pubpunto=rospy.Publisher('/duckiebot/geometry_msgs/posicionciudadano', Point, queue_size=1)
+        self.pubpunto=rospy.Publisher('/duckiebot/geometry_msgs/posicionciudadano1', Point, queue_size=1)
        
 
         self.min_area=200
@@ -82,24 +82,26 @@ class BlobColor():
         ww=0
         yy=0
         hh=0
-	area_maxima=0
+        area_maxima=0
+        
         for cnt in contours:
-                  #Obtener rectangulo
-                  x,y,w,h = cv2.boundingRect(cnt)
-		  if w*h > area_maxima:
-                  	   xx=x
-                  	   ww=w
-                  	   yy=y
-                  	   hh=h
-                  #Filtrar por area minima
-                  if w*h > self.min_area:
-
-                            #Dibujar un rectangulo en la imagen
-                            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
+            x,y,w,h = cv2.boundingRect(cnt)
+            if w*h > area_maxima:
+                xx=x
+                ww=w
+                yy=y
+                hh=h
+                area_maxima=ww*hh
+            #Filtrar por area minima
+            if w*h > self.min_area:
+                #Dibujar un rectangulo en la imagen
+                cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
 
         #Publicar frame
+        rospy.loginfo("publishing frame")
         msg_imagen=self.bridge.cv2_to_imgmsg(frame, "bgr8")
         self.pub.publish(msg_imagen)
+        
         #Publicar Point center de mayor tamanio
         centrox=xx+ww/2
         centroy=yy+hh/2
@@ -110,12 +112,13 @@ class BlobColor():
         fy=351.301664761991
         cx=329.48077647287533
         cy=231.94047577125372
-        L1=(fx*0.032)/ww 
-        L2=(fy*0.04)/hh
+        L1=(fx*3.2)/ww 
+        L2=(fy*4)/hh
         z=L1
         msgpunto.z=z
         msgpunto.x=centrox
         msgpunto.y=centroy
+        rospy.loginfo("publishing point")
         self.pubpunto.publish(msgpunto)
         deltac=centrox-centroxcamara #distancia entre centros, el objeto esta a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
         msg1 = Twist2DStamped()
@@ -133,7 +136,7 @@ class BlobColor():
 def main():
 
     rospy.init_node('BlobColor')
-
+    print "starting duckie_detector"
     BlobColor()
 
     rospy.spin()
