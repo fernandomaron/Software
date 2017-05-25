@@ -9,7 +9,7 @@ def main():
     rospy.init_node('nodo')
     rospy.loginfo('nodo')
     # Subscriber for joint states
-    sub = rospy.Subscriber('centro', Point, process_callback)
+    sub = rospy.Subscriber('distancia3d', Point, process_callback)
     rospy.spin()
 
 def process_callback(msg):

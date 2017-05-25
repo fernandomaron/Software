@@ -18,7 +18,7 @@ lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
 upper_red = np.array([10,255,255])
-lower_yellow = np.array([20,130,130])
+lower_yellow = np.array([20,160,160])
 upper_yellow = np.array([40,255,255])
 #Variables globales del rectangulo:
 xrect = 0
@@ -81,6 +81,11 @@ class duckiedetector():
         for cnt in contours:
             #Obtener rectangulo
             x,y,w,h = cv2.boundingRect(cnt)
+            centro,area,angulo = cv2.minAreaRect(cnt)
+            rect=cv2.minAreaRect(cnt)
+            box=cv2.boxPoints(rect)
+            box=np.int0(box)
+            cv2.drawContours(frame,[box],0,(0,0,255),2)
             
                     
             #Filtrar por area minima
@@ -88,7 +93,9 @@ class duckiedetector():
                 
                 #Dibujar un rectangulo en la imagen
                 cv2.rectangle(frame, (x,y), (x+w,y+h), (55,55,55), 2)
-            if w*h >= self.max_area:
+
+            if w*h >= self.max_area and (area[0]*area[1])/(w*h)>0.9:
+
                 self.max_area = w*h
                 xrect=x
                 yrect=y
@@ -108,7 +115,10 @@ class duckiedetector():
         disfoc=340.9
         altpix=hrect
         altpat=3.5
-        dispat=disfoc*altpat/altpix
+        if altpix==0:
+            dispat=100
+        else:
+            dispat=disfoc*altpat/altpix
         msj.z=dispat
         self.distance_3d.publish(msj)
 
