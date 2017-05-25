@@ -1,3 +1,4 @@
 #!/usr/bin/env 
 
-export VEHICLE_NAME=duckiebot
+export VEHICLE_NAME=tobi
+
