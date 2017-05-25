@@ -82,13 +82,15 @@ class BlobColor():
         ww=0
         yy=0
         hh=0
+	area_maxima=0
         for cnt in contours:
                   #Obtener rectangulo
                   x,y,w,h = cv2.boundingRect(cnt)
-                  xx=x
-                  ww=w
-                  yy=y
-                  hh=h
+		  if w*h > area_maxima:
+                  	   xx=x
+                  	   ww=w
+                  	   yy=y
+                  	   hh=h
                   #Filtrar por area minima
                   if w*h > self.min_area:
 
@@ -108,8 +110,8 @@ class BlobColor():
         fy=351.301664761991
         cx=329.48077647287533
         cy=231.94047577125372
-        L1=(fx*0.032)/centrox 
-        L2=(fy*0.04)/centroy
+        L1=(fx*0.032)/ww 
+        L2=(fy*0.04)/hh
         z=L1
         msgpunto.z=z
         msgpunto.x=centrox
