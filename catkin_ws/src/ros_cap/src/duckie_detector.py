@@ -89,7 +89,7 @@ class duckiedetector():
                 #Dibujar un rectangulo en la imagen
                 cv2.rectangle(frame, (x,y), (x+w,y+h), (55,55,55), 2)
             if w*h >= self.max_area:
-                self.max_area = w+h
+                self.max_area = w*h
                 xrect=x
                 yrect=y
                 wrect=w
