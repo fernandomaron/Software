@@ -78,6 +78,8 @@ class BlobColor():
         image, contours, hierarchy = cv2.findContours(mask2,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         xx=0
         ww=0
+        yy=0
+		hh=0
         for cnt in contours:
                   #Obtener rectangulo
                   x,y,w,h = cv2.boundingRect(cnt)
@@ -102,8 +104,8 @@ class BlobColor():
         msgpunto.y=centroy
         self.pubpunto.publish(msgpunto)
 
-        centroxcamara= msg_image.width/2
-        deltac=centrox-centroxcamara #distancia entre centros, el objeto está a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
+        centroxcamara= msg_imagen.width/2
+        deltac=centrox-centroxcamara #distancia entre centros, el objeto esta a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
         msg1 = Twist2DStamped()
         msg1.header.stamp = rospy.get_rostime()
         
