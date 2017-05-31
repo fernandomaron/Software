@@ -12,13 +12,14 @@ from std_srvs.srv import Empty, EmptyResponse
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
 import numpy as np
+from sensor_msgs.msg import Joy
 
 # define range of blue color in HSV
 lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
 upper_red = np.array([20,255,255])
-lower_yellow = np.array([20,180,50])
+lower_yellow = np.array([20,150,80])
 upper_yellow = np.array([30,255,255])
 
 
@@ -28,8 +29,9 @@ class BlobColor():
 
 
         #Subscribirce al topico "/duckiebot/camera_node/image/raw"
-        self.image_subscriber = rospy.Subscriber('duckiebot/camera_node/image/raw', Image, self.process_image)
+        self.image_subscriber = rospy.Subscriber('duckiebot/camera_node/image/rect', Image, self.process_image)
 
+ 
         #Clase necesaria para transformar el tipo de imagen
         self.bridge = CvBridge()
 
@@ -40,16 +42,23 @@ class BlobColor():
         self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
         self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
         self.pubgiro= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
+
         self.pubpunto=rospy.Publisher('/duckiebot/geometry_msgs/posicionciudadano', Point, queue_size=1)
-        
+       
 
         self.min_area=200
 
-
+        #Para el joystick:
+        self.punto_subscriber = rospy.Subscriber('/duckiebot/geometry_msgs/posicionciudadano', Point, self.process_punto)
+        self.sub = rospy.Subscriber('/duckiebot/joy', Joy, self.process_callback)
+		
+		#Publicador:
+        #self.pubv= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
+		
+        self.z=3000
 
     def process_image(self,img):
-
-        #Se cambiar mensage tipo ros a imagen opencv
+		#Se cambiar mensage tipo ros a imagen opencv
         try:
             self.cv_image = self.bridge.imgmsg_to_cv2(img, "bgr8")
         except CvBridgeError as e:
@@ -80,18 +89,22 @@ class BlobColor():
         ww=0
         yy=0
         hh=0
+        area_maxima=0
         for cnt in contours:
-                  #Obtener rectangulo
-                  x,y,w,h = cv2.boundingRect(cnt)
-                  xx=x
-                  ww=w
-                  yy=y
-                  hh=h
-                  #Filtrar por area minima
-                  if w*h > self.min_area:
+		#Obtener rectangulo
+            x,y,w,h = cv2.boundingRect(cnt)
+            area=w*h
+            if area > area_maxima:
+                areamax=area
+                xx=x
+                ww=w
+                yy=y
+                hh=h
+			#Filtrar por area minima
+            if w*h > self.min_area:
 
-                            #Dibujar un rectangulo en la imagen
-                            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
+			 #Dibujar un rectangulo en la imagen
+                cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
 
         #Publicar frame
         msg_imagen=self.bridge.cv2_to_imgmsg(frame, "bgr8")
@@ -99,25 +112,44 @@ class BlobColor():
         #Publicar Point center de mayor tamanio
         centrox=xx+ww/2
         centroy=yy+hh/2
+        centroxcamara= msg_imagen.width/2
+        centroycamara= msg_imagen.height/2
         msgpunto=Point()
+        fx=212.42692381213064
+        fy=212.78513200903114
+        cx=163.8421102477024
+        cy=141.4663252556416
+        #L1=(fx*3.2)/ww 
+        #L2=(fy*4)/hh
+        if ww == 0:
+            z=10000000000
+        else:
+            z=(fx*3.2)/ww
+
+        msgpunto.z=z
         msgpunto.x=centrox
         msgpunto.y=centroy
         self.pubpunto.publish(msgpunto)
 
-        centroxcamara= msg_imagen.width/2
-        deltac=centrox-centroxcamara #distancia entre centros, el objeto esta a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
+    def process_punto(self,pos):
+        self.z=pos.z
+
+    def process_callback(self,msg):
+        pubv= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
+        RT = msg.axes[5]
+        LT = msg.axes[2]
+        joystickomega= msg.axes[0]
         msg1 = Twist2DStamped()
         msg1.header.stamp = rospy.get_rostime()
+        msg1.omega = joystickomega
+		#msg1.omega = 0.9
+        msg1.v = (-RT)+(LT)
+        if self.z<30:
+            msg1.v=0
+            msg1.omega=0
+        pubv.publish(msg1)
+
         
-        if abs(deltac)<=50:
-                msg1.omega=0
-        elif centrox==0:
-                msg1.omega=0
-        else:
-                msg1.omega= -0.03*deltac
-
-        self.pubgiro.publish(msg1)
-
 def main():
 
     rospy.init_node('BlobColor')
@@ -128,4 +160,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

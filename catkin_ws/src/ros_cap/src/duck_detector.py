@@ -18,8 +18,8 @@ lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
 upper_red = np.array([20,255,255])
-lower_yellow = np.array([20,120,50])
-upper_yellow = np.array([55,255,255])
+lower_yellow = np.array([20,180,50])
+upper_yellow = np.array([30,255,255])
 
 
 class BlobColor():
@@ -108,16 +108,16 @@ class BlobColor():
         centroxcamara= msg_imagen.width/2
         centroycamara= msg_imagen.height/2
         msgpunto=Point()
-        fx=346.3308965362901
-        fy=351.301664761991
-        cx=329.48077647287533
-        cy=231.94047577125372
-        L1=(fx*3.2)/ww 
-        L2=(fy*4)/hh
+        fx=212.42692381213064
+        fy=212.78513200903114
+        cx=163.8421102477024
+        cy=141.4663252556416
+        #L1=(fx*3.2)/ww 
+        #L2=(fy*4)/hh
 	if ww == 0:
 		z=10000000000
 	else:
-		z=L1
+		z=(fx*3.2)/ww
 
         msgpunto.z=z
         msgpunto.x=centrox
