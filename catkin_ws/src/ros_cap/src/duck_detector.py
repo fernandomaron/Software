@@ -83,21 +83,19 @@ class BlobColor():
         yy=0
         hh=0
 	area_maxima=0
-	for cnt in contours:
-		#Obtener rectangulo
-		x,y,w,h = cv2.boundingRect(cnt)
-		area=w*h
-		if area > area_maxima:
-			areamax=area
-			xx=x
-			ww=w
-			yy=y
-			hh=h
-		#Filtrar por area minima
-		if w*h > self.min_area:
+        for cnt in contours:
+                  #Obtener rectangulo
+                  x,y,w,h = cv2.boundingRect(cnt)
+		  if w*h > area_maxima:
+                  	   xx=x
+                  	   ww=w
+                  	   yy=y
+                  	   hh=h
+                  #Filtrar por area minima
+                  if w*h > self.min_area:
 
-			 #Dibujar un rectangulo en la imagen
-			cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
+                            #Dibujar un rectangulo en la imagen
+                            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
 
         #Publicar frame
         msg_imagen=self.bridge.cv2_to_imgmsg(frame, "bgr8")
@@ -112,18 +110,25 @@ class BlobColor():
         fy=351.301664761991
         cx=329.48077647287533
         cy=231.94047577125372
-        L1=(fx*3.2)/ww 
-        L2=(fy*4)/hh
-	if ww == 0:
-		z=10000000000
-	else:
-		z=L1
-
+        L1=(fx*0.032)/ww 
+        L2=(fy*0.04)/hh
+        z=L1
         msgpunto.z=z
         msgpunto.x=centrox
         msgpunto.y=centroy
         self.pubpunto.publish(msgpunto)
+        deltac=centrox-centroxcamara #distancia entre centros, el objeto esta a la izquiera del centro de la camara, es negativo, de lo contrario, es positivo
+        msg1 = Twist2DStamped()
+        msg1.header.stamp = rospy.get_rostime()
         
+        if abs(deltac)<=50:
+                msg1.omega=0
+        elif centrox==0:
+                msg1.omega=0
+        else:
+                msg1.omega= -0.03*deltac
+               
+        self.pubgiro.publish(msg1)
 
 def main():
 
