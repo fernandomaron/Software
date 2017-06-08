@@ -18,13 +18,10 @@ lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
 upper_red = np.array([10,255,255])
-lower_yellow = np.array([20,160,160])
+lower_yellow = np.array([20,120,120])
 upper_yellow = np.array([40,255,255])
 #Variables globales del rectangulo:
-xrect = 0
-yrect = 0
-wrect = 0
-hrect = 0
+
 
 class duckiedetector():
 
@@ -78,6 +75,10 @@ class duckiedetector():
 
         image, contours, hierarchy = cv2.findContours(img_out,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         self.max_area=0
+        xrect = 0
+        yrect = 0
+        wrect = 0
+        hrect = 0
         for cnt in contours:
             #Obtener rectangulo
             x,y,w,h = cv2.boundingRect(cnt)
@@ -110,7 +111,7 @@ class duckiedetector():
         msj=Point()
         msj.x= xrect+wrect/2
         msj.y= yrect+hrect/2
-        disfoc=340.9
+        disfoc=169
         altpix=hrect
         altpat=3.5
         if altpix==0:
