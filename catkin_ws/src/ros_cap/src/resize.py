@@ -129,7 +129,19 @@ class BlobColor():
         self.pubcanny.publish(msg_imagenborde)
         self.pubgray1.publish(msg_imagengray1)
         self.pubgray.publish(msg_imagengray)
-
+        image, contours, hierarchy = cv2.findContours(equa,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        x=0
+        y=0
+        w=0
+        h=0
+        for cnt in contours:
+                #Obtener rectangulo
+                x,y,w,h = cv2.boundingRect(cnt)
+                blob=canny_out[x:x+w,y:y+h,:]
+                if w>h:
+                    resize=w
+                    res=cv2.resize(blob,None,fx=2, fy=2, interpolation = cv2.INTER_CUBIC)
+        
         dismin=15 #distancia minima entre circulos
         circles = cv2.HoughCircles(equa,cv2.HOUGH_GRADIENT,1,dismin,param1=250,param2=23,minRadius=5,maxRadius=45)
 
@@ -171,4 +183,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
