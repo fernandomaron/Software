@@ -13,18 +13,24 @@ from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
 import numpy as np
 
-# define range of blue color in HSV
+# 
 umbral_minimo=250/2
 umbral_maximo=250
 
-# define range of blue color in HSV
+# define los rangos de colores para las mascaras a sacar
 lower_redm = np.array([170,100,100])
 upper_redm = np.array([190,255,255])
 lower_red = np.array([0,110,110])
 upper_red = np.array([5,255,255])
-lower_yellow = np.array([20,130,130])
-upper_yellow = np.array([40,255,255])
+lower_yellow = np.array([20,180,50])
+upper_yellow = np.array([30,255,255])
+lower_blue = np.array([110,50,50])
+upper_blue = np.array([130,255,255])
+lower_green = np.array([,,])
+upper_green = np.array([,,])
 
+# define el color de la fruta que se esta buscando, entre 'rojo', 'verde', 'amarillo' y 'azul'
+COLOR='rojo'
 
 class BlobColor():
 
@@ -52,19 +58,34 @@ class BlobColor():
         self.pubcontornos=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagencontornos', Image, queue_size=1)
         self.min_area=200
 
-
+    def color(self,color,img):
+        if color=='rojo'
+            mask1 = cv2.inRange(img, lower_red, upper_red)
+            mask2 = cv2.inRange(img, lower_redm, upper_redm)
+            mask = cv2.bitwise_or(mask1,mask2)
+            return mask
+        elif color=='azul'
+            mask = cv2.inRange(img, lower_blue, upper_blue)
+            return mask
+        elif color=='amarillo'
+            mask = cv2.inRange(img, lower_yellow, upper_yellow)
+            return mask
+        else
+            mask = cv2.inRange(img, lower_green, upper_green)
+            return mask
     def process_image(self,img):
-        #Se cambiar mensage tipo ros a imagen opencv
+        #Se cambia mensage tipo ros a imagen opencv
         self.cv_image = self.bridge.imgmsg_to_cv2(img, 'bgr8')
         #Se deja en frame la imagen actual
         frame = self.cv_image
+        #se crea lista de imagenes para utilizar despues
         self.images.append(frame)
         if len(self.images) == 2:
             self.images = self.images[1:]
 
     def process_image_count(self,img):
 
-        #Se deja en frame la imagen actual
+        #Se deja en frameentero la imagen actual
         frameentero= self.cv_image
         
         #Restringimos el area de la imagen que procesamos
@@ -80,9 +101,7 @@ class BlobColor():
 
         
         # Filtrar colores de la imagen en el rango utilizando 
-        mask1 = cv2.inRange(image, lower_red, upper_red)
-        mask2 = cv2.inRange(image, lower_redm, upper_redm)
-        mask = cv2.bitwise_or(mask1,mask2)
+        mask=self.color(COLOR,image)
         # Bitwise-AND mask and original image
         
 
