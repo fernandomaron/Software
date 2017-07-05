@@ -1,43 +1,4 @@
 #!/usr/bin/env python
-<<<<<<< HEAD
-import rospy
-from sensor_msgs.msg import Joy
-from geometry_msgs.msg import Point
-from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
-class controller():
-
-    def __init__(self):
-        self.detector_sub=rospy.Subscriber('distancia3d', Point, self.image_callback)
-        self.joy_sub=rospy.Subscriber('/duckiebot/possible_cmd', Twist2DStamped, self.joy_callback)
-        self.final_pub=rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
-        self.duck_detect=False
-        self.v=0
-        self.omega=0
-    
-    def image_callback(self, msg):
-        rospy.loginfo(msg)
-        if msg.z<=20:
-            self.duck_detect=True
-        else:
-            self.duck_detect=False
-    
-    def joy_callback(self, msg):
-        self.omega=msg.omega
-        if msg.v>0 and self.duck_detect==True:
-            self.omega=10
-        else:
-            self.v=msg.v
-        msj= Twist2DStamped()
-        msj.v=self.v
-        msj.omega=self.omega
-        self.final_pub.publish(msj)
-
-def main():
-
-    rospy.init_node('controller')
-
-    controller()
-=======
 
 
 import rospy
@@ -51,14 +12,13 @@ from std_srvs.srv import Empty, EmptyResponse
 from cv_bridge import CvBridge, CvBridgeError
 from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
 import numpy as np
-from sensor_msgs.msg import Joy
 
 # define range of blue color in HSV
 lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
 lower_red = np.array([0,50,50])
 upper_red = np.array([20,255,255])
-lower_yellow = np.array([20,150,80])
+lower_yellow = np.array([20,180,50])
 upper_yellow = np.array([30,255,255])
 
 
@@ -87,17 +47,11 @@ class BlobColor():
 
         self.min_area=200
 
-        #Para el joystick:
-        self.punto_subscriber = rospy.Subscriber('/duckiebot/geometry_msgs/posicionciudadano', Point, self.process_punto)
-        self.sub = rospy.Subscriber('/duckiebot/joy', Joy, self.process_callback)
-		
-		#Publicador:
-        #self.pubv= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
-		
-        self.z=3000
+
 
     def process_image(self,img):
-		#Se cambiar mensage tipo ros a imagen opencv
+
+        #Se cambiar mensage tipo ros a imagen opencv
         try:
             self.cv_image = self.bridge.imgmsg_to_cv2(img, "bgr8")
         except CvBridgeError as e:
@@ -128,22 +82,22 @@ class BlobColor():
         ww=0
         yy=0
         hh=0
-        area_maxima=0
-        for cnt in contours:
+	area_maxima=0
+	for cnt in contours:
 		#Obtener rectangulo
-            x,y,w,h = cv2.boundingRect(cnt)
-            area=w*h
-            if area > area_maxima:
-                areamax=area
-                xx=x
-                ww=w
-                yy=y
-                hh=h
-			#Filtrar por area minima
-            if w*h > self.min_area:
+		x,y,w,h = cv2.boundingRect(cnt)
+		area=w*h
+		if area > area_maxima:
+			areamax=area
+			xx=x
+			ww=w
+			yy=y
+			hh=h
+		#Filtrar por area minima
+		if w*h > self.min_area:
 
 			 #Dibujar un rectangulo en la imagen
-                cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
+			cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,0), 2)
 
         #Publicar frame
         msg_imagen=self.bridge.cv2_to_imgmsg(frame, "bgr8")
@@ -160,41 +114,22 @@ class BlobColor():
         cy=141.4663252556416
         #L1=(fx*3.2)/ww 
         #L2=(fy*4)/hh
-        if ww == 0:
-            z=10000000000
-        else:
-            z=(fx*3.2)/ww
+	if ww == 0:
+		z=10000000000
+	else:
+		z=(fx*3.2)/ww
 
         msgpunto.z=z
         msgpunto.x=centrox
         msgpunto.y=centroy
         self.pubpunto.publish(msgpunto)
-
-    def process_punto(self,pos):
-        self.z=pos.z
-
-    def process_callback(self,msg):
-        pubv= rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
-        RT = msg.axes[5]
-        LT = msg.axes[2]
-        joystickomega= msg.axes[0]
-        msg1 = Twist2DStamped()
-        msg1.header.stamp = rospy.get_rostime()
-        msg1.omega = joystickomega
-		#msg1.omega = 0.9
-        msg1.v = (-RT)+(LT)
-        if self.z<30:
-            msg1.v=0
-            msg1.omega=0
-        pubv.publish(msg1)
-
         
+
 def main():
 
     rospy.init_node('BlobColor')
 
     BlobColor()
->>>>>>> a6c558c2d8d02fdf31d0ed3e9489fc8e6af5233b
 
     rospy.spin()
 

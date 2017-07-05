@@ -1,43 +1,4 @@
 #!/usr/bin/env python
-<<<<<<< HEAD
-import rospy
-from sensor_msgs.msg import Joy
-from geometry_msgs.msg import Point
-from duckietown_msgs.msg import  Twist2DStamped, BoolStamped
-class controller():
-
-    def __init__(self):
-        self.detector_sub=rospy.Subscriber('distancia3d', Point, self.image_callback)
-        self.joy_sub=rospy.Subscriber('/duckiebot/possible_cmd', Twist2DStamped, self.joy_callback)
-        self.final_pub=rospy.Publisher('/duckiebot/wheels_driver_node/car_cmd', Twist2DStamped, queue_size=1)
-        self.duck_detect=False
-        self.v=0
-        self.omega=0
-    
-    def image_callback(self, msg):
-        rospy.loginfo(msg)
-        if msg.z<=20:
-            self.duck_detect=True
-        else:
-            self.duck_detect=False
-    
-    def joy_callback(self, msg):
-        self.omega=msg.omega
-        if msg.v>0 and self.duck_detect==True:
-            self.omega=10
-        else:
-            self.v=msg.v
-        msj= Twist2DStamped()
-        msj.v=self.v
-        msj.omega=self.omega
-        self.final_pub.publish(msj)
-
-def main():
-
-    rospy.init_node('controller')
-
-    controller()
-=======
 
 
 import rospy
@@ -180,12 +141,12 @@ class BlobColor():
         joystickomega= msg.axes[0]
         msg1 = Twist2DStamped()
         msg1.header.stamp = rospy.get_rostime()
-        msg1.omega = joystickomega
+        msg1.omega = 5*joystickomega
 		#msg1.omega = 0.9
         msg1.v = (-RT)+(LT)
         if self.z<30:
-            msg1.v=0
-            msg1.omega=0
+            #msg1.v=0
+            msg1.omega=7
         pubv.publish(msg1)
 
         
@@ -194,7 +155,6 @@ def main():
     rospy.init_node('BlobColor')
 
     BlobColor()
->>>>>>> a6c558c2d8d02fdf31d0ed3e9489fc8e6af5233b
 
     rospy.spin()
 
