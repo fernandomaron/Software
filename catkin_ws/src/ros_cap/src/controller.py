@@ -21,12 +21,11 @@ class controller():
             self.duck_detect=False
     
     def joy_callback(self, msg):
-        
+        self.omega=msg.omega
         if msg.v>0 and self.duck_detect==True:
-            self.v=0
+            self.omega=-1
         else:
             self.v=msg.v
-        self.omega=msg.omega
         msj= Twist2DStamped()
         msj.v=self.v
         msj.omega=self.omega
