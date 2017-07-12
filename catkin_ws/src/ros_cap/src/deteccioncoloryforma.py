@@ -99,8 +99,14 @@ class Deteccion():
         #Restringimos el area de la imagen que procesamos
         frame=frameentero[:200,:,:]
         frame2=frame.copy()
+
+        #Tomamos el canal de rojos del frame
         framerojo1=frame[:,:,2]
+
+        #Ecualizamos el canal de rojos del frame
         frameequa=cv2.equalizeHist(framerojo1)
+
+        #Reemplazamos el canal de rojos del frame por el nuevo canal de rojos ecualizados
         frame2[:,:,2]=frameequa
 
         #Cambiar tipo de color de BGR a HSV
