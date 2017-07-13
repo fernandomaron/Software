@@ -27,14 +27,18 @@ lower_yellow = np.array([20,180,50])
 upper_yellow = np.array([30,255,255])
 lower_blue = np.array([110,50,50])
 upper_blue = np.array([130,255,255])
-lower_green = np.array([,,])
-upper_green = np.array([,,])
-lower = np.array([,,])
-upper = np.array([,,])
+lower_green = np.array([45,100,100])
+upper_green = np.array([55,255,255])
+lower_duckie = np.array([0,100,100])
+upper_duckie = np.array([8,255,255])
+lower_duckie2 = np.array([170,100,100])
+upper_duckie2 = np.array([180,255,255])
+lower = np.array([0,0,0])
+upper = np.array([255,255,255])
 
-# Define el color de la fruta que se esta buscando, entre 'rojo', 'verde', 'amarillo' y 'azul'
+# Define el color de la fruta que se esta buscando, entre 'rojo', 'verde', 'amarillo' y 'azul', o 'duckie' para las frutas de duckietown
 # Si desea otro color escriba un string distinto a los mencionados
-COLOR='rojo'
+COLOR='duckie'
 
 class Deteccion():
 
@@ -51,30 +55,34 @@ class Deteccion():
         self.cv_image = Image()
 
         #Publicadores
-        self.pub=rospy.Publisher('/duckiebot/camera_node/raw_camera_deteccion_amarillo', Image, queue_size=1)
-        self.pub2=rospy.Publisher('/duckiebot/camera_node/raw_camera_punto', Point, queue_size=1)
         self.pubcanny=rospy.Publisher('/duckiebot/camera_node/raw_camera_canny', Image, queue_size=1)
         self.pubgray1=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagenmascara', Image, queue_size=1)
         self.pubgray=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagengray', Image, queue_size=1)
         self.pubcontornos=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagencontornos', Image, queue_size=1)
 
+
     #Funcion para sacar mascaras segun el color ingresado
     def color(self,color,img):
-        if color=='rojo'
+        if color=='rojo':
             mask1 = cv2.inRange(img, lower_red, upper_red)
             mask2 = cv2.inRange(img, lower_redm, upper_redm)
             mask = cv2.bitwise_or(mask1,mask2)
             return mask
-        elif color=='azul'
+        elif color=='azul':
             mask = cv2.inRange(img, lower_blue, upper_blue)
             return mask
-        elif color=='amarillo'
+        elif color=='amarillo':
             mask = cv2.inRange(img, lower_yellow, upper_yellow)
             return mask
-        elif color=='verde'
+        elif color=='verde':
             mask = cv2.inRange(img, lower_green, upper_green)
             return mask
-        else
+        elif color=='duckie':
+            mask1 = cv2.inRange(img, lower_duckie, upper_duckie)
+            mask2 = cv2.inRange(img, lower_duckie2, upper_duckie2)
+            mask = cv2.bitwise_or(mask1,mask2)
+            return mask
+        else:
             mask = cv2.inRange(img, lower, upper)
             return mask
 
@@ -113,6 +121,7 @@ class Deteccion():
         image=cv2.cvtColor(frame2, cv2.COLOR_BGR2HSV)
         
         # Filtrar colores de la imagen en el rango utilizando 
+        global COLOR
         mask=self.color(COLOR,image)  
      
         #Kernel utilizado en el dilate
