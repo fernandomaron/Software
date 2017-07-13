@@ -146,7 +146,6 @@ class Deteccion():
         #Transformamos equa a BGR para usarlo en el if si lo necesitamos
         cimg = cv2.cvtColor(equa,cv2.COLOR_GRAY2BGR)
         
-
         #Publicar imagenes
         msg_imagenborde=self.bridge.cv2_to_imgmsg(canny_out, "bgr8")
         msg_imagengray=self.bridge.cv2_to_imgmsg(equa, "mono8")
@@ -154,6 +153,12 @@ class Deteccion():
         self.pubcanny.publish(msg_imagenborde)
         self.pubgray1.publish(msg_imagenmascara)
         self.pubgray.publish(msg_imagengray)
+        
+        msg_imagencontornos=self.bridge.cv2_to_imgmsg(frameentero, "bgr8")
+        self.pubcontornos.publish(msg_imagencontornos)
+        self.imagen=msg_imagencontornos
+
+
 
         dismin=15 #distancia minima entre circulos
         circles = cv2.HoughCircles(equa,cv2.HOUGH_GRADIENT,1,dismin,param1=250,param2=23,minRadius=5,maxRadius=45)
@@ -172,10 +177,6 @@ class Deteccion():
             return k
         else:
             return 0
-        
-        msg_imagencontornos=self.bridge.cv2_to_imgmsg(frameentero, "bgr8")
-        self.pubcontornos.publish(msg_imagencontornos)
-        self.imagen=msg_imagencontornos
 
     #Proceso que detecta el presionar del joystick para comenzar la deteccion de frutas
     def process_button(self, joy_msg):
