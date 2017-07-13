@@ -56,7 +56,7 @@ class Deteccion():
 
         #Publicadores
         self.pubcanny=rospy.Publisher('/duckiebot/camera_node/raw_camera_canny', Image, queue_size=1)
-        self.pubgray1=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagenmascara', Image, queue_size=1)
+        self.pubmascara=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagenmascara', Image, queue_size=1)
         self.pubgray=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagengray', Image, queue_size=1)
         self.pubcontornos=rospy.Publisher('/duckiebot/camera_node/raw_camera_imagencontornos', Image, queue_size=1)
 
@@ -133,9 +133,9 @@ class Deteccion():
         #Interseccion de la imagen completa con la mascara
         segment_image = cv2.bitwise_and(frame,frame, mask=img_out)
 
-        #Ocupamos solo la capa verde del frame
-        framerojo=segment_image[:,:,1]
-        equa=cv2.equalizeHist(framerojo)
+        #Ocupamos solo la capa verde del frame, y la ecualizamos
+        frameverde=segment_image[:,:,1]
+        equa=cv2.equalizeHist(frameverde)
         
         # Aplicamos canny a la imagen en escala de grises
         canny = cv2.Canny(equa, umbral_minimo, umbral_maximo)
@@ -147,18 +147,15 @@ class Deteccion():
         cimg = cv2.cvtColor(equa,cv2.COLOR_GRAY2BGR)
         
         #Publicar imagenes
-        msg_imagenborde=self.bridge.cv2_to_imgmsg(canny_out, "bgr8")
+        msg_imagencontornos=self.bridge.cv2_to_imgmsg(frameentero, "bgr8")
+        msg_imagencanny=self.bridge.cv2_to_imgmsg(canny_out, "bgr8")
         msg_imagengray=self.bridge.cv2_to_imgmsg(equa, "mono8")
         msg_imagenmascara=self.bridge.cv2_to_imgmsg(segment_image, "bgr8")
-        self.pubcanny.publish(msg_imagenborde)
-        self.pubgray1.publish(msg_imagenmascara)
-        self.pubgray.publish(msg_imagengray)
-        
-        msg_imagencontornos=self.bridge.cv2_to_imgmsg(frameentero, "bgr8")
+
+        self.pubcanny.publish(msg_imagencanny)
+        self.pubmascara.publish(msg_imagenmascara)
+        self.pubgray.publish(msg_imagengray)    
         self.pubcontornos.publish(msg_imagencontornos)
-        self.imagen=msg_imagencontornos
-
-
 
         dismin=15 #distancia minima entre circulos
         circles = cv2.HoughCircles(equa,cv2.HOUGH_GRADIENT,1,dismin,param1=250,param2=23,minRadius=5,maxRadius=45)
